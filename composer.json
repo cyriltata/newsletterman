@@ -9,11 +9,6 @@
 			"homepage": "http://github.com/cyriltata"
 		}
 	],
-	"autoload": {
-		"psr-0": {
-			"RmdParser": "lib/"
-		}
-	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"require": {
