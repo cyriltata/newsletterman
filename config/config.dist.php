@@ -12,6 +12,8 @@ $config['database']['newsletters'] = array(
 	'username' => 'username',
 	'password' => 'password',
 	'dbname' => 'dbname',
+	'port' => 3306,
+	'charset' => 'utf8',
 
 	// Table and field definitions
 	'table' => 'newsletters',
