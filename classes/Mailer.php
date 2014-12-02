@@ -1,8 +1,6 @@
 <?php
 
-/**
- * Get and save ready jobs
- */
+
 class Mailer {
 
 	/**

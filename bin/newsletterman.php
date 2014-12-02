@@ -12,6 +12,7 @@ try {
 	$mailer->setBatchInterval(Config::get('batch_interval'));
 	$mailer->setBatchLimit(Config::get('batch_limit'));
 	$mailer->setLoopInterval(Config::get('loop_interval'));
+	$mailer->setErrorHandler();
 	$mailer->run();
 } catch (Exception $e) {
 	error_log($e->getMessage());
