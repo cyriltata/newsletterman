@@ -28,10 +28,10 @@ class Recipient extends Model {
 	}
 
 	public static function getBatch($offset = 0, $limit = 20) {
-		$r = new self();
+		$self = new self();
 
-		$select = $r->db->select($r->select_columns());
-		$select->from($r->table);
+		$select = $self->db->select($self->select_columns());
+		$select->from($self->table);
 		$select->limit($limit, $offset);
 		$rows = $select->fetchAll();
 		return self::db_maps($rows, __CLASS__);

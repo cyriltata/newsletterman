@@ -34,12 +34,12 @@ class Newsletter extends Model {
 	}
 
 	public static function getScheduled($offset = 0, $limit = 20) {
-		$nl = new self();
-		$scheduled = $nl->get_field('Schedule') . ' < ';
-		$triggered = $nl->get_field('Triggered') . ' <= ';
+		$self = new self();
+		$scheduled = $self->get_field('Schedule') . ' < ';
+		$triggered = $self->get_field('Triggered') . ' <= ';
 
-		$select = $nl->db->select($nl->select_columns());
-		$select->from($nl->table);
+		$select = $self->db->select($self->select_columns());
+		$select->from($self->table);
 		$select->where(array($scheduled => time(), $triggered => 0));
 		$select->limit($limit, $offset);
 		$rows = $select->fetchAll();
