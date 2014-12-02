@@ -1,0 +1,26 @@
+{
+	"name": "cyriltata/newsletterman",
+	"description": "Send out newsletters saved in a well-defined MySQL database. You need to configure newsletter subject, content and recipients fields accordingly",
+	"authors": [
+		{
+			"name": "Cyril Tata",
+			"email": "cyril.tata@gmail.com",
+			"role": "Developer",
+			"homepage": "http://github.com/cyriltata"
+		}
+	],
+	"autoload": {
+		"psr-0": {
+			"RmdParser": "lib/"
+		}
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"require": {
+		"php": ">=5.4",
+		"phpmailer/phpmailer": "5.*"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "3.7.*"
+	}
+}
