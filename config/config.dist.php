@@ -64,6 +64,7 @@ $config['batch_limit'] = 20;
 
 // SMTP settings
 $config['smtp'] = array(
+	'use' => true,
 	'server' => '',
 	'username' => '',
 	'password' => '',

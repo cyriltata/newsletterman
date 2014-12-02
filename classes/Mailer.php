@@ -119,12 +119,13 @@ class Mailer {
 	}
 
 	private function sendNewsLetter(Newsletter $newsletter) {
-		self::dbg(sprintf("Newsletter Proccessing [%d, %s] ....", $newsletter->Id, $newsletter->Subject));
-
+		$msg = sprintf("Newsletter Proccessing [%d, %s] ....\n", $newsletter->Id, $newsletter->Subject);
 		$batch_limit = $this->batch_limit;
 		$batch_offset = 0;
 		$deliveries = $failures = 0;
-		$logs = array();
+		$logs = array($msg);
+		$start_time = microtime(true);
+		self::dbg($msg);
 
 		$phpmailer = $this->phpMailer();
 		$phpmailer->From = $newsletter->SenderEmail;
@@ -132,6 +133,7 @@ class Mailer {
 		$phpmailer->Subject = $newsletter->Subject;
 		$phpmailer->Body = $newsletter->Message;
 		$phpmailer->ConfirmReadingTo = $newsletter->SenderEmail;
+		$phpmailer->clearReplyTos();
 		$phpmailer->addReplyTo($newsletter->SenderEmail, $newsletter->SenderName);
 		//$phpmailer->AltBody = striptags($newsletter->Message);
 
@@ -163,8 +165,12 @@ class Mailer {
 		$newsletter->Deliveries = $deliveries;
 		$newsletter->Failures = $failures;
 		$newsletter->save();
+		$proccesed_secs = microtime(true) - $start_time;
+		$processed_mins = round(($proccesed_secs / 60), 2);
+		$proccesed_msg = sprintf("Newsletter Proccessed [%d, %s]: %d deliveries, %d failures in %s minutes\n", $newsletter->Id, $newsletter->Subject, $newsletter->Deliveries, $newsletter->Failures, $processed_mins);
+		$logs[] = $proccesed_msg;
 		$this->newsLetterLog($newsletter, $logs);
-		self::dbg(sprintf("Newsletter Proccessed [%d, %s]: %d deliveries, %d failures", $newsletter->Id, $newsletter->Subject, $newsletter->Deliveries, $newsletter->Failures));
+		self::dbg($proccesed_msg);
 	}
 
 	/**
@@ -207,16 +213,6 @@ class Mailer {
 		$phpmailer->addCustomHeader("X-MSMail-Priority: High");
 		$phpmailer->addCustomHeader("Importance: High");
 		$phpmailer->CharSet = 'utf-8';
-
-		/*
-		  $phpmailer->addAddress('ellen@example.com');   // Name is optional
-		  $phpmailer->addReplyTo('info@example.com', 'Information');
-		  $phpmailer->addCC('cc@example.com');
-		  $phpmailer->addBCC('bcc@example.com');
-		  $phpmailer->WordWrap = 50;   // Set word wrap to 50 characters
-		  $phpmailer->addAttachment('/var/tmp/file.tar.gz');   // Add attachments
-		  $phpmailer->addAttachment('/tmp/image.jpg', 'new.jpg'); // Optional name
-		 */
 
 		return $phpmailer;
 	}
