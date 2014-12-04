@@ -41,6 +41,7 @@ install_dependencies:
 	@echo "Installing dependencies ....."
 
 	cd $(INSTALL_DIR) && $(COMPOSER) install
+	cd $(INSTALL_DIR) && $(COMPOSER) update
 	@echo "Done"
 
 uninstall:
@@ -49,7 +50,7 @@ uninstall:
 	@rm -rf $(SYS_CRON_TAB)
 	@echo "Done."
 
-update: update_files install_dependencies clean
+update: update_files clean
 	@echo "Updating...."
 	@echo "$$DONE"
 
@@ -57,7 +58,7 @@ update_files:
 	$(GIT) reset --hard
 	$(GIT) pull origin master
 
-	cd $(INSTALL_DIR) && $(COMPOSER) install
+	cd $(INSTALL_DIR) && $(COMPOSER) update
 
 clean:
 	@echo "Installation completed..."
