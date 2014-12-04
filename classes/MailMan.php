@@ -1,7 +1,6 @@
 <?php
 
-
-class Mailer {
+class MailMan {
 
 	/**
 	 * Interval in seconds to check newsletter records in database
@@ -38,6 +37,7 @@ class Mailer {
 	 * @var int
 	 */
 	protected $batch_limit = 20;
+	protected $cronlock;
 
 	public function __construct() {
 		// declare signal handlers
@@ -51,6 +51,9 @@ class Mailer {
 			self::$dbg = true;
 			self::dbg('pcntl extension is not loaded');
 		}
+
+		register_shutdown_function(array(&$this, 'shutdown'));
+		$this->cronlock = NLM_DIR . '/cron.lock';
 	}
 
 	/**
@@ -78,8 +81,13 @@ class Mailer {
 	 * Main function that checks if the new jobs have been added to the queue
 	 * and if yes, then processes them
 	 */
-	public function run() {
+	public function run($as_deamon = false) {
 		self::dbg('Starting up NewsletterMan Mailer...');
+
+		// If not called to run as deamon just send newsletters once
+		if ($as_deamon !== true) {
+			return $this->cron();
+		}
 
 		// loop forever until terminated by SIGINT
 		while (!$this->out) {
@@ -114,6 +122,41 @@ class Mailer {
 		}
 
 		echo getmypid(), " Terminating...\n";
+	}
+
+	private function cron() {
+		if (file_exists($this->cronlock)) {
+			self::dbg(sprintf("Cron overlapped. StartTime: %s, OverlapTime: %s", file_get_contents($this->cronlock), date('r')));
+			return;
+		}
+
+		$this->cronStartUp();
+
+		$newsletters = Newsletter::getScheduled();
+		if ($newsletters) {
+			self::dbg(sprintf("Fetched %d newsletters", count($newsletters)));
+			/* @var $newsletter Newsletter */
+			foreach ($newsletters as $newsletter) {
+				$newsletter->trigger();
+				$this->sendNewsLetter($newsletter);
+			}
+		}
+
+		$this->cronCleanUp();
+	}
+
+	private function cronStartUp() {
+		$written = file_put_contents($this->cronlock, date('r'));
+		if (!$written) {
+			throw new Exception("Unable to wrote to cron lock file {$this->cronlock}");
+		}
+		return $written;
+	}
+
+	private function cronCleanUp() {
+		if (file_exists($this->cronlock)) {
+			unlink($this->cronlock);
+		}
 	}
 
 	private function sendNewsLetter(Newsletter $newsletter) {
@@ -240,6 +283,11 @@ class Mailer {
 					echo "\nLeaving debug mode...\n";
 				break;
 		}
+		$this->cronCleanUp();
+	}
+
+	public function shutdown() {
+		$this->cronCleanUp();
 	}
 
 	/**
@@ -341,7 +389,7 @@ class Mailer {
 	 * @param string $str
 	 */
 	private static function dbg($str) {
-		$message = "[".date('Y-m-d H:i:s')."] NewsletterMailMan: " . getmypid() . " " . $str . "\n";
+		$message = "[" . date('Y-m-d H:i:s') . "] NewsletterMailMan: " . getmypid() . " " . $str . "\n";
 		if (self::$dbg) {
 			// list($ms, $s) = explode(' ', microtime());
 			echo $message;
