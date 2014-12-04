@@ -57,5 +57,7 @@ update_files:
 	$(GIT) reset --hard
 	$(GIT) pull origin master
 
+	cd $(INSTALL_DIR) && $(COMPOSER) install
+
 clean:
 	@echo "Installation completed..."
