@@ -59,6 +59,7 @@ update_files:
 	$(GIT) pull origin master
 
 	cd $(INSTALL_DIR) && $(COMPOSER) update
+	@chmod 0755 $(INSTALL_DIR)/bin/newsletterman.php
 
 clean:
 	@echo "Installation completed..."
