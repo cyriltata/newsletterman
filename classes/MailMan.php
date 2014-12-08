@@ -189,14 +189,14 @@ class MailMan {
 				} catch (phpmailerException $e) {
 					self::dbg('PHPMailer Exception [Send]: ' . $e->getMessage());
 					$sent = $this->mail($newsletter->SenderEmail, $recipient->Email, $newsletter->Subject, $newsletter->Message);
-				} finally {
-					if (!empty($sent)) {
-						$deliveries++;
-						$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
-					} else {
-						$failures++;
-						$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
-					}
+				}
+
+				if (!empty($sent)) {
+					$deliveries++;
+					$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
+				} else {
+					$failures++;
+					$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
 				}
 			}
 
