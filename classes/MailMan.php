@@ -160,7 +160,7 @@ class MailMan {
 	}
 
 	private function sendNewsLetter(Newsletter $newsletter) {
-		$msg = sprintf("Newsletter Proccessing [%d, %s] ....\n", $newsletter->Id, $newsletter->Subject);
+		$msg = sprintf("Newsletter Proccessing [%d, %s, (scheduled: %s)] ....\n", $newsletter->Id, $newsletter->Subject, date('Y-m-d H:i:s', $newsletter->Schedule));
 		$batch_limit = $this->batch_limit;
 		$batch_offset = 0;
 		$deliveries = $failures = 0;
