@@ -143,6 +143,7 @@ class MailMan {
 		}
 
 		$this->cronCleanUp();
+		self::dbg('Terminate NewsletterMan Mailer cron..');
 	}
 
 	private function cronStartUp() {
@@ -172,7 +173,6 @@ class MailMan {
 		$phpmailer->From = $newsletter->SenderEmail;
 		$phpmailer->FromName = $newsletter->SenderName;
 		$phpmailer->Subject = $newsletter->Subject;
-		$phpmailer->Body = $newsletter->Message;
 		$phpmailer->ConfirmReadingTo = $newsletter->SenderEmail;
 		$phpmailer->clearReplyTos();
 		$phpmailer->addReplyTo($newsletter->SenderEmail, $newsletter->SenderName);
@@ -181,22 +181,26 @@ class MailMan {
 		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
 			/* @var $recipient Recipient */
 			foreach ($recipients as $recipient) {
+				// replace place holders of recipient information
+				$message = self::replace($newsletter->Message, (array) $recipient);
+				$names = implode(' ', array($recipient->FirstName, $recipient->LastName));
 				// If you are not able to send with PHPMailer, try vanilla mail function
 				try {
 					$this->clearPHPMailer($phpmailer);
-					$phpmailer->addAddress($recipient->Email, $recipient->Names);
+					$phpmailer->addAddress($recipient->Email, $names);
+					$phpmailer->Body = $message;
 					$sent = $phpmailer->send();
 				} catch (phpmailerException $e) {
 					self::dbg('PHPMailer Exception [Send]: ' . $e->getMessage());
-					$sent = $this->mail($newsletter->SenderEmail, $recipient->Email, $newsletter->Subject, $newsletter->Message);
+					$sent = $this->mail($newsletter->SenderEmail, $recipient->Email, $newsletter->Subject, $message);
 				}
 
 				if (!empty($sent)) {
 					$deliveries++;
-					$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
+					$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
 				} else {
 					$failures++;
-					$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $recipient->Names, $recipient->Email);
+					$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
 				}
 			}
 
@@ -205,6 +209,9 @@ class MailMan {
 
 		$newsletter->Deliveries = $deliveries;
 		$newsletter->Failures = $failures;
+		if (!$newsletter->Deliveries) {
+			$newsletter->Triggered = 0;
+		}
 		$newsletter->save();
 		$proccesed_secs = microtime(true) - $start_time;
 		$processed_mins = round(($proccesed_secs / 60), 2);
@@ -388,13 +395,31 @@ class MailMan {
 	 *
 	 * @param string $str
 	 */
-	private static function dbg($str) {
+	public static function dbg($str) {
 		$message = "[" . date('Y-m-d H:i:s') . "] NewsletterMailMan: " . getmypid() . " " . $str . "\n";
 		if (self::$dbg) {
 			// list($ms, $s) = explode(' ', microtime());
 			echo $message;
 		}
 		error_log($message);
+	}
+
+	/**
+	 * Replace place holders of the form %{....} in a string
+	 *
+	 * @param string $string String with place holders
+	 * @param string $data An associative array with keys being the place holder names
+	 * @return string
+	 */
+	private static function replace($string, $data = array()) {
+		foreach ($data as $find => $replace) {
+			if (!is_string($replace)) {
+				continue;
+			}
+			$find = '%{'.$find.'}';
+			$string = str_replace($find, $replace, $string);
+		}
+		return $string;
 	}
 
 }

@@ -3,7 +3,8 @@
 class Recipient extends Model {
 
 	public $Id;
-	public $Names;
+	public $FirstName;
+	public $LastName;
 	public $Email;
 
 	protected static $instances  = array();
@@ -42,7 +43,8 @@ class Recipient extends Model {
 		$this->table = Config::get('database.recipients.table');
 		$this->primary[] = Config::get('database.recipients.id_field');
 		$this->define_field(Config::get('database.recipients.id_field'), 'Id');
-		$this->define_field(Config::get('database.recipients.names_field'), 'Names');
+		$this->define_field(Config::get('database.recipients.first_name_field'), 'FirstName');
+		$this->define_field(Config::get('database.recipients.last_name_field'), 'LastName');
 		$this->define_field(Config::get('database.recipients.email_field'), 'Email');
 	}
 

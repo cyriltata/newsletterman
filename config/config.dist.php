@@ -41,7 +41,8 @@ $config['database']['recipients'] = array(
 	// Table and field definitions
 	'table' => 'newsletters_mailinglist',
 	'id_field' => 'id',
-	'names_field' => 'names',
+	'first_name_field' => 'first_name',
+	'last_name_field' => 'last_name',
 	'email_field' => 'email',
 );
 

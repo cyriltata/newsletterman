@@ -7,9 +7,18 @@ if (php_sapi_name() !== 'cli') {
 	exit('Command line usage only');
 }
 
-$opts = getopt('d');
+$opts = getopt('dc:');
 $as_deamon = isset($opts['d']);
+$config_file = isset($opts['c']) ? $opts['c'] : null;
+
 try {
+	// If a config file was specified, use it
+	if ($config_file && is_readable($config_file)) {
+		//$config = array();
+		require_once $config_file;
+		Config::overwrite($config);
+	}
+	// Send the mail man on a mission
 	$mailman = new MailMan();
 	$mailman->setBatchInterval(Config::get('batch_interval'));
 	$mailman->setBatchLimit(Config::get('batch_limit'));
@@ -19,6 +28,7 @@ try {
 } catch (Exception $e) {
 	error_log($e->getMessage());
 	error_log($e->getTraceAsString());
+	MailMan::dbg('Exit with error');
 	exit(1);
 }
 

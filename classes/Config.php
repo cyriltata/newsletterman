@@ -27,7 +27,11 @@ class Config {
         self::$config = $config;
     }
 
-    /**
+	public static function overwrite(array $config) {
+		self::$config = array_merge(self::$config, $config);
+	}
+
+	/**
      * Get config item
      *
      * @param string $key

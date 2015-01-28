@@ -37,11 +37,11 @@ class Newsletter extends Model {
 		$self = new self();
 		$activated = $self->get_field('Schedule') . ' > 0';
 		$scheduled = $self->get_field('Schedule') . ' < ' . time();
-		$triggered = $self->get_field('Triggered') . ' <= 0';
+		$nottriggered = $self->get_field('Triggered') . ' <= 0';
 
 		$select = $self->db->select($self->select_columns());
 		$select->from($self->table);
-		$select->where($activated)->where($scheduled)->where($triggered);
+		$select->where($activated)->where($scheduled)->where($nottriggered);
 		$select->limit($limit, $offset);
 		$rows = $select->fetchAll();
 		return self::db_maps($rows, __CLASS__);
@@ -64,6 +64,11 @@ class Newsletter extends Model {
 
 	public function trigger() {
 		$this->Triggered = time();
+		$this->save();
+	}
+
+	public function untrigger() {
+		$this->Triggered = 0;
 		$this->save();
 	}
 
