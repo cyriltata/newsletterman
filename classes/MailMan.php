@@ -31,8 +31,6 @@ class MailMan {
 	 */
 	protected static $dbg = true;
 
-	protected $sendmethod = 'sendInTO';
-
 	/**
 	 * How many emails to send out in one batch
 	 *
@@ -40,6 +38,8 @@ class MailMan {
 	 */
 	protected $batch_limit = 20;
 	protected $cronlock;
+	protected $sendmethod = 'sendInTO';
+	protected $config_used = 'config.php';
 
 	public function __construct() {
 		// declare signal handlers
@@ -84,8 +84,8 @@ class MailMan {
 	 * and if yes, then processes them
 	 */
 	public function run($as_deamon = false) {
-		self::dbg('Starting up NewsletterMan Mailer...');
-
+		self::dbg('Starting up NewsletterMan Mailer... ');
+		self::dbg('Configuration: ' . $this->config_used);
 		// If not called to run as deamon just send newsletters once
 		if ($as_deamon !== true) {
 			return $this->cron();
@@ -365,6 +365,15 @@ class MailMan {
 			return;
 		}
 		$this->sendmethod = $method;
+	}
+
+	/**
+	 * Set which config method was used
+	 *
+	 * @param string $config
+	 */
+	public function setConfigUsed($config) {
+		$this->config_used = $config;
 	}
 
 	/**

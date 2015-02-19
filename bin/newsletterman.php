@@ -12,14 +12,17 @@ $as_deamon = isset($opts['d']);
 $config_file = isset($opts['c']) ? $opts['c'] : null;
 
 try {
+	// Send the mail man on a mission
+	$mailman = new MailMan();
+
 	// If a config file was specified, use it
 	if ($config_file && is_readable($config_file)) {
 		//$config = array();
 		require_once $config_file;
 		Config::overwrite($config);
+		$mailman->setConfigUsed($config_file);
 	}
-	// Send the mail man on a mission
-	$mailman = new MailMan();
+
 	$mailman->setBatchInterval(Config::get('batch_interval'));
 	$mailman->setBatchLimit(Config::get('batch_limit'));
 	$mailman->setLoopInterval(Config::get('loop_interval'));
