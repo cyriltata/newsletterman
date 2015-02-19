@@ -72,3 +72,6 @@ $config['smtp'] = array(
 	'port' => '',
 	'secure' => '', //'tls' or 'ssl' or leave blank
 );
+
+// Send mails in TO field or use BCC for batches
+$config['send_method'] = 'sendInTO'; //'sendInTO' or 'sendInBCC'

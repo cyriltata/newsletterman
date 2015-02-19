@@ -194,7 +194,7 @@ class MailMan {
 		self::dbg($proccesed_msg);
 	}
 
-	private function sendInTO(Newsletter $newsletter, phpMailer $phpmailer) {
+	protected function sendInTO(Newsletter $newsletter, phpMailer $phpmailer) {
 		$batch_limit = $this->batch_limit;
 		$batch_offset = 0;
 		$deliveries = $failures = 0;
@@ -232,7 +232,7 @@ class MailMan {
 		return array ($deliveries, $failures, $logs);
 	}
 
-	private function sendInBCC(Newsletter $newsletter, phpMailer $phpmailer) {
+	protected function sendInBCC(Newsletter $newsletter, phpMailer $phpmailer) {
 		$batch_limit = $this->batch_limit;
 		$batch_offset = 0;
 		$deliveries = $failures = 0;

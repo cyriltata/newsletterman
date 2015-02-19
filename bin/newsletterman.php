@@ -10,7 +10,6 @@ if (php_sapi_name() !== 'cli') {
 $opts = getopt('dc:m:');
 $as_deamon = isset($opts['d']);
 $config_file = isset($opts['c']) ? $opts['c'] : null;
-$sendmethod = isset($opts['m']) ? $opts['m'] : null;
 
 try {
 	// If a config file was specified, use it
@@ -24,7 +23,7 @@ try {
 	$mailman->setBatchInterval(Config::get('batch_interval'));
 	$mailman->setBatchLimit(Config::get('batch_limit'));
 	$mailman->setLoopInterval(Config::get('loop_interval'));
-	$mailman->setSendMethod($sendmethod);
+	$mailman->setSendMethod(Config::get('send_method'));
 	$mailman->setErrorHandler();
 	$mailman->run($as_deamon);
 } catch (Exception $e) {
