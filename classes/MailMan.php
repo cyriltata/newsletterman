@@ -31,6 +31,8 @@ class MailMan {
 	 */
 	protected static $dbg = true;
 
+	protected $sendmethod = 'sendInTO';
+
 	/**
 	 * How many emails to send out in one batch
 	 *
@@ -162,10 +164,6 @@ class MailMan {
 
 	private function sendNewsLetter(Newsletter $newsletter) {
 		$msg = sprintf("Newsletter Proccessing [%d, %s, (scheduled: %s)] ....\n", $newsletter->Id, $newsletter->Subject, date('Y-m-d H:i:s', $newsletter->Schedule));
-		$batch_limit = $this->batch_limit;
-		$batch_offset = 0;
-		$deliveries = $failures = 0;
-		$logs = array($msg);
 		$start_time = microtime(true);
 		self::dbg($msg);
 
@@ -177,6 +175,30 @@ class MailMan {
 		$phpmailer->clearReplyTos();
 		$phpmailer->addReplyTo($newsletter->SenderEmail, $newsletter->SenderName);
 		//$phpmailer->AltBody = striptags($newsletter->Message);
+
+		$sendmethod = $this->sendmethod;
+		list($deliveries, $failures, $logs) = $this->{$sendmethod}($newsletter, $phpmailer);
+		array_unshift($logs, $msg);
+
+		$newsletter->Deliveries = $deliveries;
+		$newsletter->Failures = $failures;
+		if (!$newsletter->Deliveries) {
+			$newsletter->Triggered = 0;
+		}
+		$newsletter->save();
+		$proccesed_secs = microtime(true) - $start_time;
+		$processed_mins = round(($proccesed_secs / 60), 2);
+		$proccesed_msg = sprintf("Newsletter Proccessed [%d, %s]: %d deliveries, %d failures in %s minutes\n", $newsletter->Id, $newsletter->Subject, $newsletter->Deliveries, $newsletter->Failures, $processed_mins);
+		$logs[] = $proccesed_msg;
+		$this->newsLetterLog($newsletter, $logs);
+		self::dbg($proccesed_msg);
+	}
+
+	private function sendInTO(Newsletter $newsletter, phpMailer $phpmailer) {
+		$batch_limit = $this->batch_limit;
+		$batch_offset = 0;
+		$deliveries = $failures = 0;
+		$logs = array();
 
 		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
 			/* @var $recipient Recipient */
@@ -207,18 +229,42 @@ class MailMan {
 			$batch_offset += $batch_limit;
 		}
 
-		$newsletter->Deliveries = $deliveries;
-		$newsletter->Failures = $failures;
-		if (!$newsletter->Deliveries) {
-			$newsletter->Triggered = 0;
+		return array ($deliveries, $failures, $logs);
+	}
+
+	private function sendInBCC(Newsletter $newsletter, phpMailer $phpmailer) {
+		$batch_limit = $this->batch_limit;
+		$batch_offset = 0;
+		$deliveries = $failures = 0;
+		$logs = array();
+
+		$phpmailer->Body = $newsletter->Message;
+
+		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
+			try {
+				$this->clearPHPMailer($phpmailer);
+				/* @var $recipient Recipient */
+				$phpmailer->addAddress($newsletter->SenderEmail, $newsletter->SenderName);
+				foreach ($recipients as $recipient) {
+					$names = implode(' ', array($recipient->FirstName, $recipient->LastName));
+					$phpmailer->addBCC($recipient->Email, $names);
+					$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
+				}
+				$phpmailer->send();
+				$deliveries += count($recipients);
+			} catch (Exception $e) {
+				self::dbg('PHPMailer Exception [Send]: ' . $e->getMessage());
+				$failures += count($recipients);
+				foreach ($recipients as $recipient) {
+					$names = implode(' ', array($recipient->FirstName, $recipient->LastName));
+					$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
+				}
+			}
+
+			$batch_offset += $batch_limit;
 		}
-		$newsletter->save();
-		$proccesed_secs = microtime(true) - $start_time;
-		$processed_mins = round(($proccesed_secs / 60), 2);
-		$proccesed_msg = sprintf("Newsletter Proccessed [%d, %s]: %d deliveries, %d failures in %s minutes\n", $newsletter->Id, $newsletter->Subject, $newsletter->Deliveries, $newsletter->Failures, $processed_mins);
-		$logs[] = $proccesed_msg;
-		$this->newsLetterLog($newsletter, $logs);
-		self::dbg($proccesed_msg);
+
+		return array ($deliveries, $failures, $logs);
 	}
 
 	/**
@@ -307,6 +353,18 @@ class MailMan {
 			return;
 		}
 		$this->batch_interval = round($interval, 6);
+	}
+
+	/**
+	 * Set what method will be used to send the emails
+	 *
+	 * @param string $method
+	 */
+	public function setSendMethod($method) {
+		if (!$method || !in_array($method, array('sendInTO', 'sendInBCC'))) {
+			return;
+		}
+		$this->sendmethod = $method;
 	}
 
 	/**
