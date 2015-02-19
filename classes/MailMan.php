@@ -163,7 +163,8 @@ class MailMan {
 	}
 
 	private function sendNewsLetter(Newsletter $newsletter) {
-		$msg = sprintf("Newsletter Proccessing [%d, %s, (scheduled: %s)] ....\n", $newsletter->Id, $newsletter->Subject, date('Y-m-d H:i:s', $newsletter->Schedule));
+		$sendmethod = $this->sendmethod;
+		$msg = sprintf("Newsletter Proccessing [%d, %s, (scheduled: %s), using: %s] ....\n", $newsletter->Id, $newsletter->Subject, date('Y-m-d H:i:s', $newsletter->Schedule), $sendmethod);
 		$start_time = microtime(true);
 		self::dbg($msg);
 
@@ -176,7 +177,6 @@ class MailMan {
 		$phpmailer->addReplyTo($newsletter->SenderEmail, $newsletter->SenderName);
 		//$phpmailer->AltBody = striptags($newsletter->Message);
 
-		$sendmethod = $this->sendmethod;
 		list($deliveries, $failures, $logs) = $this->{$sendmethod}($newsletter, $phpmailer);
 		array_unshift($logs, $msg);
 
