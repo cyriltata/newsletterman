@@ -27,6 +27,7 @@ try {
 	$mailman->setBatchLimit(Config::get('batch_limit'));
 	$mailman->setLoopInterval(Config::get('loop_interval'));
 	$mailman->setSendMethod(Config::get('send_method'));
+	$mailman->setReadingConfirmation(Config::get('confirm_reading'));
 	$mailman->setErrorHandler();
 	$mailman->run($as_deamon);
 } catch (Exception $e) {

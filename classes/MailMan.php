@@ -40,6 +40,7 @@ class MailMan {
 	protected $cronlock;
 	protected $sendmethod = 'sendInTO';
 	protected $config_used = 'config.php';
+	protected $confirm_reading = false;
 
 	public function __construct() {
 		// declare signal handlers
@@ -172,7 +173,11 @@ class MailMan {
 		$phpmailer->From = $newsletter->SenderEmail;
 		$phpmailer->FromName = $newsletter->SenderName;
 		$phpmailer->Subject = $newsletter->Subject;
-		$phpmailer->ConfirmReadingTo = $newsletter->SenderEmail;
+
+		if ($this->confirm_reading) {
+			$phpmailer->ConfirmReadingTo = $newsletter->SenderEmail;
+		}
+
 		$phpmailer->clearReplyTos();
 		$phpmailer->addReplyTo($newsletter->SenderEmail, $newsletter->SenderName);
 		//$phpmailer->AltBody = striptags($newsletter->Message);
@@ -372,6 +377,10 @@ class MailMan {
 			return;
 		}
 		$this->sendmethod = $method;
+	}
+
+	public function setReadingConfirmation($value) {
+		$this->confirm_reading = $value;
 	}
 
 	/**
