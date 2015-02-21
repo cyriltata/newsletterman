@@ -242,16 +242,23 @@ class MailMan {
 
 		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
 			try {
+				$batchfailures = 0;
 				$this->clearPHPMailer($phpmailer);
 				/* @var $recipient Recipient */
 				$phpmailer->addAddress($newsletter->SenderEmail, $newsletter->SenderName);
 				foreach ($recipients as $recipient) {
 					$names = implode(' ', array($recipient->FirstName, $recipient->LastName));
-					$phpmailer->addBCC($recipient->Email, $names);
-					$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
+					if ($phpmailer->validateAddress($recipient->Email)) {
+						$phpmailer->addBCC($recipient->Email, $names);
+						$logs[] = sprintf("[NL.%d] Sent To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
+					} else {
+						$logs[] = sprintf("[NL.%d] Failed To: %s <%s> \n", $newsletter->Id, $names, $recipient->Email);
+						$batchfailures++;
+					}
 				}
 				$phpmailer->send();
-				$deliveries += count($recipients);
+				$deliveries += count($recipients) - $batchfailures;
+				$failures += $batchfailures;
 			} catch (Exception $e) {
 				self::dbg('PHPMailer Exception [Send]: ' . $e->getMessage());
 				$failures += count($recipients);
