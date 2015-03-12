@@ -7,45 +7,40 @@ class Recipient extends Model {
 	public $LastName;
 	public $Email;
 
+	protected $mailist;
+
 	protected static $instances  = array();
 
-	protected function __construct() {
+	protected function __construct($maillist = 'default') {
+		$this->mailist = $maillist;
 		parent::__construct();
 	}
 
-	/**
-	 * Load from DB a newsletter with ID $id
-	 *
-	 * @param in $id
-	 * @param mixed $columns A comma separated string of column names or an array of column names
-	 * @return Newsletter;
-	 * 
-	 */
-	public static function load($id, $columns = null) {
-		if (!isset(self::$instances[$id])) {
-			self::$instances[$id] = parent::loadById($id, __CLASS__, $columns);
+	public static function getBatch($offset = 0, $limit = 20, $maillist = 'default') {
+		if (!$maillist) {
+			$maillist = 'default';
 		}
-		return self::$instances[$id];
-	}
-
-	public static function getBatch($offset = 0, $limit = 20) {
-		$self = new self();
+		$self = new self($maillist);
 
 		$select = $self->db->select($self->select_columns());
 		$select->from($self->table);
 		$select->limit($limit, $offset);
 		$rows = $select->fetchAll();
-		return self::db_maps($rows, __CLASS__);
+		return self::db_maps($rows, __CLASS__, $maillist);
 	}
 
 	protected function define() {
-		$this->db = DB::getInstance('recipients');
-		$this->table = Config::get('database.recipients.table');
-		$this->primary[] = Config::get('database.recipients.id_field');
-		$this->define_field(Config::get('database.recipients.id_field'), 'Id');
-		$this->define_field(Config::get('database.recipients.first_name_field'), 'FirstName');
-		$this->define_field(Config::get('database.recipients.last_name_field'), 'LastName');
-		$this->define_field(Config::get('database.recipients.email_field'), 'Email');
+		$this->db = DB::getInstance("recipients.{$this->mailist}");
+		$this->table = Config::get($this->db_field('table'));
+		$this->primary[] = Config::get($this->db_field('id_field'));
+		$this->define_field(Config::get($this->db_field('id_field')), 'Id');
+		$this->define_field(Config::get($this->db_field('first_name_field')), 'FirstName');
+		$this->define_field(Config::get($this->db_field('last_name_field')), 'LastName');
+		$this->define_field(Config::get($this->db_field('email_field')), 'Email');
+	}
+
+	protected function db_field($field) {
+		return "database.recipients.{$this->mailist}.{$field}";
 	}
 
 }

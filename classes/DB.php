@@ -51,6 +51,9 @@ class DB {
 
 	protected function __construct($instance) {
 		$params = (array) Config::get("database.{$instance}");
+		if (!isset($params['host']) || !isset($params['dbname']) || !isset($params['username']) || !isset($params['password'])) {
+			throw new Exception("Required DB parameters not set [host, dbname, username, password]");
+		}
 
 		$options = array(
 			'host' => $params['host'],

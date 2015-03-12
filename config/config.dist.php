@@ -26,10 +26,12 @@ $config['database']['newsletters'] = array(
 	'sender_email_field' => 'sender_email',
 	'deliveries_field' => 'deliveries', 
 	'failures_field' => 'failures',
+	'maillist_field' => 'maillist',
 );
 
 // Database configuration where newsletters recipients resider
-$config['database']['recipients'] = array(
+$config['database']['recipients'] = array();
+$config['database']['recipients']['default'] = array(
 	// Connection parameters
 	'host' => 'host',
 	'username' => 'username',
@@ -74,4 +76,6 @@ $config['smtp'] = array(
 );
 
 // Send mails in TO field or use BCC for batches
-$config['send_method'] = 'sendInTO'; //'sendInTO' or 'sendInBCC'
+$config['send_method'] = 'sendInBCC'; //'sendInTO' or 'sendInBCC'
+
+$config['confirm_reading'] = false;

@@ -18,12 +18,12 @@ class Model {
 	}
 
 	protected function define() {
-		
+
 	}
 
 	protected function define_field($key, $name) {
 		if (!$key) {
-			throw new Exception("Trying to defin an empty field");
+			throw new Exception("Trying to define an empty field");
 		}
 		$this->_fields[$key] = $name;
 	}
@@ -72,8 +72,8 @@ class Model {
 		return false;
 	}
 
-	protected static function db_map($row, $class) {
-		$object = new $class;
+	protected static function db_map($row, $class, $args = null) {
+		$object = new $class($args);
 		$reflector = new ReflectionClass($class);
 		foreach ($row as $property => $value) {
 			$prop = $reflector->getProperty($property);
@@ -84,9 +84,9 @@ class Model {
 		return $object;
 	}
 
-	protected static function db_maps($rows, $class) {
+	protected static function db_maps($rows, $class, $args = null) {
 		foreach ($rows as $i => $row) {
-			$rows[$i] = self::db_map($row, $class);
+			$rows[$i] = self::db_map($row, $class, $args);
 		}
 		return $rows;
 	}

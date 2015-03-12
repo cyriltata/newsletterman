@@ -205,7 +205,7 @@ class MailMan {
 		$deliveries = $failures = 0;
 		$logs = array();
 
-		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
+		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit, $newsletter->Maillist))) {
 			/* @var $recipient Recipient */
 			foreach ($recipients as $recipient) {
 				// replace place holders of recipient information
@@ -245,7 +245,7 @@ class MailMan {
 
 		$phpmailer->Body = $newsletter->Message;
 
-		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit))) {
+		while ($this->restedBatch() && ($recipients = Recipient::getBatch($batch_offset, $batch_limit, $newsletter->Maillist))) {
 			try {
 				$batchfailures = 0;
 				$this->clearPHPMailer($phpmailer);

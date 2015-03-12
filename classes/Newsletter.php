@@ -11,6 +11,7 @@ class Newsletter extends Model {
 	public $SenderEmail;
 	public $Deliveries;
 	public $Failures;
+	public $Maillist;
 
 	protected static $instances  = array();
 
@@ -60,6 +61,7 @@ class Newsletter extends Model {
 		$this->define_field(Config::get('database.newsletters.sender_email_field'), 'SenderEmail');
 		$this->define_field(Config::get('database.newsletters.deliveries_field'), 'Deliveries');
 		$this->define_field(Config::get('database.newsletters.failures_field'), 'Failures');
+		$this->define_field(Config::get('database.newsletters.maillist_field'), 'Maillist');
 	}
 
 	public function trigger() {
