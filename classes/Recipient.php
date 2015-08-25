@@ -3,9 +3,9 @@
 class Recipient extends Model {
 
 	public $Id;
-	public $FirstName;
-	public $LastName;
-	public $Email;
+	public $FirstName = '';
+	public $LastName = '';
+	public $Email = '';
 
 	protected $mailist;
 
